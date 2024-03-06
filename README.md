@@ -100,7 +100,7 @@ make install
 Here is an example for compiling and installing `libtrixi` (we used v0.1.4):
 
 ```shell
-git clone --branch 'v0.1.4' --depth 1 https://github.com/trixi-framework/libtrixi.git
+git clone --branch 'v0.1.5' --depth 1 https://github.com/trixi-framework/libtrixi.git
 cd libtrixi
 mkdir build
 cd build
