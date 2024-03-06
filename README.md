@@ -50,7 +50,7 @@ The following standard software packages need to be made available locally befor
 * [CMake](https://cmake.org/)
   (we used cmake v3.16.3)
 * MPI (e.g., [Open MPI](https://www.open-mpi.org/) or [MPICH](https://www.mpich.org/))
-  (we used OpenMPI v3.1)
+  (we used Open MPI v3.1)
 * [HDF5](https://www.hdfgroup.org/solutions/hdf5/)
   (we used hdf5-openmpi v1.10)
 * [Julia](https://julialang.org/downloads/platform/) v1.10
@@ -100,12 +100,13 @@ make install
 Here is an example for compiling and installing `libtrixi` (we used v0.1.4):
 
 ```shell
+cd $WORKDIR
 git clone --branch 'v0.1.5' --depth 1 https://github.com/trixi-framework/libtrixi.git
 cd libtrixi
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_INSTALL_PREFIX=${HOME}/install/libtrixi ..
+      -DCMAKE_INSTALL_PREFIX=${PREFIX}/libtrixi ..
 make
 make install
 ```
@@ -113,37 +114,34 @@ make install
 A separate Julia project for use with libtrixi has to be set up:
 
 ```shell
-mkdir ${HOME}/install/libtrixi-julia
-cd ${HOME}/install/libtrixi-julia
-${HOME}/install/libtrixi/bin/libtrixi-init-julia \
-  --t8code-library ${HOME}/install/t8code/lib/libt8.so \
+mkdir ${PREFIX}/libtrixi-julia
+cd ${PREFIX}/libtrixi-julia
+${PREFIX}/libtrixi/bin/libtrixi-init-julia \
+  --t8code-library ${PREFIX}/t8code/lib/libt8.so \
   --hdf5-library /usr/lib/x86_64-linux-gnu/hdf5/openmpi/libhdf5.so \
-  ${HOME}/install/libtrixi
+  ${PREFIX}/libtrixi
 ```
 
 To exactly reproduce the results presented in the talk, the provided [Manifest.toml](Manifest.toml)
 can be used to install the same package versions for all Julia dependencies:
 
 ```shell
-cp Manifest.toml ${HOME}/install/libtrixi-julia/
-cd ${HOME}/install/libtrixi-julia
-JULIA_DEPOT_PATH=./julia-depot julia --project=.
-julia> import Pkg
-julia> Pkg.instantiate()
+cp Manifest.toml ${PREFIX}/libtrixi-julia/
+cd ${PREFIX}/libtrixi-julia
+JULIA_DEPOT_PATH=./julia-depot \
+  julia --project=. -e 'import Pkg; Pkg.instantiate()'
 ```
 
 
 #### Trixi2Vtk
 
-If the provided `Manifest.toml` was not used (see above),
 [Trixi2Vtk](https://github.com/trixi-framework/Trixi2Vtk.jl)
-still needs to be installed for later post processing:
+needs to be installed for later post processing (we used v0.3.12):
 
 ```shell
-cd ${HOME}/install/libtrixi-julia
-JULIA_DEPOT_PATH=./julia-depot julia --project=.
-julia> import Pkg
-julia> Pkg.add("Trixi2Vtk")
+cd ${PREFIX}/libtrixi-julia
+JULIA_DEPOT_PATH=./julia-depot \
+  julia --project=. -e 'import Pkg; Pkg.add(name="Trixi2Vtk", version="0.3.12")'
 ```
 
 
@@ -152,20 +150,18 @@ julia> Pkg.add("Trixi2Vtk")
 #### Rising thermal perturbation
 
 ```shell
-cd ${HOME}/install/libtrixi
+cd ${PREFIX}/libtrixi
 mpirun -n 2 ./bin/trixi_controller_simple_f \
-  ${HOME}/install/libtrixi-julia \
-  ${HOME}/install/libtrixi/share/libtrixi/LibTrixi.jl/examples/libelixir_tree2d_warm_bubble.jl
+  ${PREFIX}/libtrixi-julia \
+  ${PREFIX}/libtrixi/share/libtrixi/LibTrixi.jl/examples/libelixir_tree2d_warm_bubble.jl
 ```
 
-Output files will be written to `${HOME}/install/libtrixi/out_bubble` and need to be post processed:
+Output files will be written to `${PREFIX}/libtrixi/out_bubble` and need to be post processed:
 
 ```shell
-cd ${HOME}/install/libtrixi/out_bubble
-JULIA_DEPOT_PATH=${HOME}/install/libtrixi-julia/julia-depot \
-   julia --project=${HOME}/install/libtrixi-julia
-julia> using Trixi2Vtk
-julia> trixi2vtk("solution*.h5")
+cd ${PREFIX}/libtrixi/out_bubble
+JULIA_DEPOT_PATH=${PREFIX}/libtrixi-julia/julia-depot \
+   julia --project=${PREFIX}/libtrixi-julia -e 'using Trixi2Vtk; trixi2vtk("solution*.h5")'
 ```
 
 The results can now be viewed using, e.g, paraview.
@@ -176,20 +172,18 @@ to generate our results.
 #### Baroclinic instability
 
 ```shell
-cd ${HOME}/install/libtrixi
+cd ${PREFIX}/libtrixi
 mpirun -n 12 ./bin/trixi_controller_simple_f \
-  ${HOME}/install/libtrixi-julia \
-  ${HOME}/install/libtrixi/share/libtrixi/LibTrixi.jl/examples/libelixir_p4est3d_euler_baroclinic_instability.jl
+  ${PREFIX}/libtrixi-julia \
+  ${PREFIX}/libtrixi/share/libtrixi/LibTrixi.jl/examples/libelixir_p4est3d_euler_baroclinic_instability.jl
 ```
 
-Output files will be written to `${HOME}/install/libtrixi/out_baroclinic` and need to be post processed:
+Output files will be written to `${PREFIX}/libtrixi/out_baroclinic` and need to be post processed:
 
 ```shell
-cd ${HOME}/install/libtrixi/out_bubble
-JULIA_DEPOT_PATH=${HOME}/install/libtrixi-julia/julia-depot \
-   julia --project=${HOME}/install/libtrixi-julia
-julia> using Trixi2Vtk
-julia> trixi2vtk("solution*.h5")
+cd ${PREFIX}/libtrixi/out_bubble
+JULIA_DEPOT_PATH=${PREFIX}/libtrixi-julia/julia-depot \
+   julia --project=${PREFIX}/libtrixi-julia -e 'using Trixi2Vtk; trixi2vtk("solution*.h5")'
 ```
 
 The results can now be viewed using, e.g, paraview.
